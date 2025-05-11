@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Attendance History</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: 40px auto;
+      padding: 25px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    th, td {
+      padding: 14px 12px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    button {
+      display: block;
+      margin: 0 auto;
+      padding: 10px 18px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>📖 Student Attendance History</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceList">
+        <!-- Yahan data aayega -->
+      </tbody>
+    </table>
+
+    <button onclick="goBack()">🔙 Back</button>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const studentId = urlParams.get('id');
+
+    // Custom date parser for different formats
+    function parseCustomDate(dateString) {
+      // Try different date formats
+      const formats = [
+        { regex: /(\d{4})-(\d{2})-(\d{2})/, parts: [1, 2, 3] }, // YYYY-MM-DD
+        { regex: /(\d{2})-(\d{2})-(\d{4})/, parts: [3, 2, 1] },  // DD-MM-YYYY
+        { regex: /(\d{2})\/(\d{2})\/(\d{4})/, parts: [3, 2, 1] } // DD/MM/YYYY
+      ];
+      
+      for (const format of formats) {
+        const match = dateString.match(format.regex);
+        if (match) {
+          const year = match[format.parts[0]];
+          const month = match[format.parts[1]] - 1;
+          const day = match[format.parts[2]];
+          return new Date(year, month, day);
+        }
+      }
+      return new Date(NaN); // Invalid date
+    }
+
+    // Time format fix for 12AM ke baad
+    function formatTime(timeStr) {
+      if (!timeStr) return 'N/A';
+      
+      // Handle 24-hour format (e.g., "13:45:00" -> "1:45:00 PM")
+      const parts = timeStr.split(':');
+      if (parts.length >= 2) {
+        let hours = parseInt(parts[0]);
+        const minutes = parts[1];
+        const seconds = parts[2] || '00';
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12 AM
+        
+        return `${hours}:${minutes}:${seconds} ${ampm}`;
+      }
+      return timeStr; // Return as-is if format not recognized
+    }
+
+    async function loadAttendance() {
+      try {
+        const res = await fetch(`http://localhost:3000/admin/student-attendance/${studentId}`);
+        const data = await res.json();
+        console.log("API se mila data:", data); // Debugging ke liye
+
+        const table = document.getElementById("attendanceList");
+        table.innerHTML = "";
+
+        if (data.length === 0) {
+          table.innerHTML = '<tr><td colspan="4">Koi attendance record nahi mila</td></tr>';
+          return;
+        }
+
+        data.forEach(record => {
+          // Date handling - pehle check karo kya format hai
+          let dateOnly = 'N/A';
+          if (record.lecture_date) {
+            let date = new Date(record.lecture_date);
+            
+            // Agar date invalid hai to custom parser try karo
+            if (isNaN(date.getTime())) {
+              date = parseCustomDate(record.lecture_date);
+            }
+            
+            // Fir bhi nahi chala to raw string dikhao
+            dateOnly = !isNaN(date.getTime()) 
+              ? date.toLocaleDateString('en-IN') 
+              : record.lecture_date;
+          }
+
+          // Time handling - 12AM ke baad ke liye fix
+          const timeOnly = record.lecture_time 
+            ? formatTime(record.lecture_time) 
+            : 'N/A';
+
+          table.innerHTML += `
+            <tr>
+              <td>${record.subject || 'N/A'}</td>
+              <td>${dateOnly}</td>
+              <td>${timeOnly}</td>
+              <td>${record.status || 'N/A'}</td>
+            </tr>`;
+        });
+      } catch (error) {
+        console.error("Error aaya bhai:", error);
+        document.getElementById("attendanceList").innerHTML =
+          '<tr><td colspan="4">Data load karne mein error aaya</td></tr>';
+      }
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+
+    window.onload = loadAttendance;
+  </script>
+
+</body>
+</html>

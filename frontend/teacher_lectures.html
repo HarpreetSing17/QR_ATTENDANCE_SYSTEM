@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Teacher Lectures</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .container {
+      width: 80%;
+      margin: 30px auto;
+      background-color: white;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+    h2 {
+      text-align: center;
+      font-size: 32px;
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    th, td {
+      padding: 12px 20px;
+      text-align: left;
+    }
+    th {
+      background-color: #4CAF50;
+      color: white;
+      font-size: 20px;
+    }
+    td {
+      background-color: #f9f9f9;
+      border-bottom: 1px solid #ddd;
+    }
+    td:hover {
+      background-color: #f1f1f1;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 18px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .error {
+      color: red;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📚 Teacher's Lectures</h2>
+    <table border="1" cellspacing="0" cellpadding="8">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Date & Time</th>
+          <th>Students Present</th>
+        </tr>
+      </thead>
+      <tbody id="lectureList">
+        <tr>
+          <td colspan="3" class="error">Loading data...</td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
+    <button onclick="goBack()">🔙 Back</button>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const teacherId = urlParams.get('id');
+
+    async function loadLectures() {
+      try {
+        const response = await fetch(`http://localhost:3000/admin/teacher-lectures/${teacherId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status} status`);
+        }
+        
+        const lectures = await response.json();
+        const tableBody = document.getElementById("lectureList");
+        
+        if (!lectures || lectures.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="3" style="text-align: center;">No lectures found for this teacher</td>
+            </tr>`;
+          return;
+        }
+
+        tableBody.innerHTML = lectures.map(lecture => {
+          // Format date and time
+          let formattedDateTime = 'N/A';
+          if (lecture.lecture_time) {
+            try {
+              const dateObj = new Date(lecture.lecture_time);
+              if (!isNaN(dateObj.getTime())) {
+                formattedDateTime = dateObj.toLocaleString('en-IN', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                });
+              }
+            } catch (e) {
+              console.error('Error formatting date:', e);
+            }
+          }
+
+          // Get students present count
+          const studentsPresent = typeof lecture.students_present !== 'undefined' ? lecture.students_present : 0;
+
+          return `
+            <tr>
+              <td>${lecture.subject || 'N/A'}</td>
+              <td>${formattedDateTime}</td>
+              <td>${studentsPresent}</td>
+            </tr>`;
+        }).join('');
+        
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById("lectureList").innerHTML = `
+          <tr>
+            <td colspan="3" class="error">
+              Error loading data: ${error.message}<br>
+              Please check console for details
+            </td>
+          </tr>`;
+      }
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+
+    // Load data when page opens
+    window.addEventListener('DOMContentLoaded', loadLectures);
+  </script>
+</body>
+</html>

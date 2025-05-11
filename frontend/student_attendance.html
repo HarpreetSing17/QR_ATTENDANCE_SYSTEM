@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Attendance</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      background-color: #0e0e0e;
+      color: white;
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: #1a1a1a;
+      border: 1px solid #00ffcc;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+    th {
+      background-color: #00ffcc;
+      color: black;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #00ffcc;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>📋 My Attendance History</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Subject</th>
+        <th>Date</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody id="attendance-body"></tbody>
+  </table>
+
+  <button onclick="goBack()">🔙 Back to Dashboard</button>
+
+  <script>
+    const studentId = localStorage.getItem("studentId");
+
+    async function fetchAttendance() {
+      const res = await fetch(`http://localhost:3000/student/attendance/${studentId}`);
+      const data = await res.json();
+      const tbody = document.getElementById("attendance-body");
+
+      data.attendance.forEach(record => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${record.subject}</td>
+          <td>${new Date(record.timestamp).toLocaleDateString()}</td>
+          <td>${new Date(record.timestamp).toLocaleTimeString()}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function goBack() {
+      window.location.href = "student_dashboard.html";
+    }
+
+    fetchAttendance();
+  </script>
+</body>
+</html>

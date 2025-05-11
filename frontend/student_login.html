@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Student Login</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="form-page">
+  <div class="container">
+    <h2>🔐 Student Login</h2>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+    <p>Not registered? <a href="student_signup.html">Sign Up</a></p>
+  </div>
+
+  <!-- Go to Student Home Button -->
+  <button id="homeButton" onclick="window.location.href='student_home.html'">Go to Student Home</button>
+
+  <script>
+    const form = document.getElementById("loginForm");
+  
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+  
+      const response = await fetch("http://localhost:3000/student/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      const result = await response.json();
+      alert(result.message);
+  
+      if (response.ok) {
+        // 🛠 Rename roll_no to rollno
+        const student = {
+          ...result.student,
+          rollno: result.student.roll_no
+        };
+  
+        localStorage.setItem("studentId", student.id);
+        localStorage.setItem("student", JSON.stringify(student));
+        window.location.href = "student_dashboard.html";
+      }
+    });
+  </script>
+  
+</body>
+</html>

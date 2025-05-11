@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Teacher Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dashboard-page">
+  <div class="container">
+    <h2>Welcome, <span id="teacherName">Teacher</span></h2>
+
+    <div class="dashboard-options">
+      <button onclick="toggleLectureForm()">📅 Create New Lecture</button>
+      <button onclick="window.location.href = 'attendance_history.html';">📖 Attendance History</button>
+      <button onclick="logout()">🚪 Logout</button>
+    </div>
+
+    <div id="lectureForm" style="display: none;">
+      <input type="text" id="lectureName" placeholder="Enter Lecture Name" required>
+
+      <select id="lectureBranch" required>
+        <option value="">Select Branch</option>
+        <option value="CSE">CSE</option>
+        <option value="ECE">ECE</option>
+        <option value="ME">ME</option>
+        <option value="CE">CE</option>
+        <option value="EE">EE</option>
+      </select>
+
+      <select id="lectureSemester" required>
+        <option value="">Select Semester</option>
+        <option value="1">Semester 1</option>
+        <option value="2">Semester 2</option>
+        <option value="3">Semester 3</option>
+        <option value="4">Semester 4</option>
+        <option value="5">Semester 5</option>
+        <option value="6">Semester 6</option>
+        <option value="7">Semester 7</option>
+        <option value="8">Semester 8</option>
+      </select>
+
+      <select id="lectureDate">
+        <option value="">Select Date</option>
+        <script>
+          for (let i = 1; i <= 31; i++) {
+            document.write(`<option value="${i}">${i}</option>`);
+          }
+        </script>
+      </select>
+
+      <select id="lectureMonth">
+        <option value="">Select Month</option>
+        <script>
+          const months = ["January", "February", "March", "April", "May", "June", "July",
+            "August", "September", "October", "November", "December"];
+          months.forEach((month, i) => {
+            document.write(`<option value="${i}">${month}</option>`);
+          });
+        </script>
+      </select>
+
+      <button onclick="createLecture()">Generate QR Code</button>
+    </div>
+
+    <div id="qrSection" style="margin-top: 20px; display: none;">
+      <h3>Lecture QR Code</h3>
+      <img id="qrCodeImage" src="" alt="QR Code will appear here" style="max-width: 300px;" />
+      <p><strong>Note:</strong> QR is valid for 1 hour 15 minutes from creation.</p>
+    </div>
+
+    <div id="attendanceList" style="margin-top: 20px; display: none;">
+      <h3>Students Marked Present</h3>
+      <ul id="studentsScannedList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const teacher = JSON.parse(localStorage.getItem("teacher"));
+    const currentLectureId = localStorage.getItem("currentLectureId");
+
+    if (!teacher || !teacher.id) {
+      alert("Unauthorized access. Please login again.");
+      window.location.href = "index.html";
+    } else {
+      document.getElementById("teacherName").innerText = teacher.name;
+    }
+
+    function toggleLectureForm() {
+      const form = document.getElementById("lectureForm");
+      form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+
+    async function createLecture() {
+      const subject = document.getElementById("lectureName").value.trim();
+      const day = document.getElementById("lectureDate").value;
+      const month = document.getElementById("lectureMonth").value;
+      const branch = document.getElementById("lectureBranch").value;
+      const semester = document.getElementById("lectureSemester").value;
+
+      if (!subject || !day || month === "" || !branch || !semester) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:3000/teacher/create-lecture", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            teacher_id: teacher.id,
+            subject,
+            lecture_day: parseInt(day),
+            lecture_month: parseInt(month),
+            branch,
+            semester
+          })
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          alert(errorData.message || "Failed to create lecture.");
+          return;
+        }
+
+        const data = await res.json();
+        localStorage.setItem("currentLectureId", data.lecture_id);
+        document.getElementById("qrSection").style.display = "block";
+        document.getElementById("attendanceList").style.display = "block";
+        document.getElementById("qrCodeImage").src = data.qr;
+        loadAttendance(data.lecture_id);
+      } catch (err) {
+        console.error(err);
+        alert("Error connecting to the server.");
+      }
+    }
+
+    async function loadAttendance(lectureId) {
+      try {
+        const res = await fetch(`http://localhost:3000/teacher/lecture-attendance/${lectureId}`);
+        const data = await res.json();
+
+        const list = document.getElementById("studentsScannedList");
+        list.innerHTML = "";
+
+        data.attendance.forEach(student => {
+          const li = document.createElement("li");
+          li.textContent = `${student.student_name} (${student.roll_no}) - ${student.branch}`;
+          list.appendChild(li);
+        });
+      } catch (err) {
+        console.error("Failed to load attendance:", err);
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("teacher");
+      localStorage.removeItem("currentLectureId");
+      window.location.href = "index.html";
+    }
+
+    window.onload = async () => {
+      if (currentLectureId) {
+        try {
+          const res = await fetch(`http://localhost:3000/teacher/lecture/${currentLectureId}`);
+          const data = await res.json();
+
+          if (res.ok && new Date(data.expiry_time) > new Date()) {
+            document.getElementById("qrSection").style.display = "block";
+            document.getElementById("attendanceList").style.display = "block";
+            document.getElementById("qrCodeImage").src = data.qr_code;
+            loadAttendance(currentLectureId);
+          }
+        } catch (err) {
+          console.error("Failed to reload QR:", err);
+        }
+      }
+    };
+  </script>
+</body>
+</html>

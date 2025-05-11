@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Sign Up</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="form-page">
+  <div class="container">
+    <h2>🎓 Student Sign Up</h2>
+    <form id="signupForm">
+      <form id="signupForm">
+        <input type="text" placeholder="Name" id="name" name="name" required>
+        <input type="text" placeholder="Roll Number" id="rollno" name="rollno" required>
+        <input type="text" placeholder="Branch" id="branch" name="branch" required>
+        <input type="text" placeholder="Semester" id="semester" name="semester" required>
+        <input type="email" placeholder="Email" id="email" name="email" required>
+        <input type="password" placeholder="Password" id="password" name="password" required>
+        <button type="submit">Sign Up</button>
+      </form>
+      
+    </form>
+    <p>Already registered? <a href="student_login.html">Login here</a></p>
+  </div>
+
+  <!-- Go to Student Home Button -->
+  <button id="homeButton" onclick="window.location.href='student_home.html'">Go to Student Home</button>
+
+  <script>
+    const form = document.getElementById("signupForm");
+  
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const rollno = document.getElementById("rollno").value;
+      const branch = document.getElementById("branch").value;
+      const semester = document.getElementById("semester").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+  
+      const response = await fetch("http://localhost:3000/student/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, rollno, branch, semester, email, password })
+      });
+  
+      const result = await response.json();
+      alert(result.message);
+      if (response.ok) {
+        window.location.href = "student_login.html";
+      }
+    });
+  </script>
+  
+</body>
+</html>

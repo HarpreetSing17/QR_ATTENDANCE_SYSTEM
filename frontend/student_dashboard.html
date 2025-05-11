@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dashboard-page">
+  <div class="container">
+    <h2>Welcome, <span id="studentName">Student</span></h2>
+    <p>Roll No: <span id="studentRoll"></span></p>
+    <p>Branch: <span id="studentBranch"></span></p>
+    <p>Email: <span id="studentEmail"></span></p>
+
+    <button onclick="openQRScanner()">📷 Scan QR to Mark Attendance</button>
+<button onclick="viewAttendanceHistory()">📖 View Attendance History</button>
+<button onclick="logout()">🚪 Logout</button>
+
+  </div>
+
+  <script>
+    const student = JSON.parse(localStorage.getItem("student"));
+
+    if (!student) {
+      alert("Unauthorized access. Please login again.");
+      window.location.href = "index.html";
+    } else {
+      document.getElementById("studentName").innerText = student.name || "Student";
+      document.getElementById("studentRoll").innerText = student.rollno || "N/A";
+      document.getElementById("studentBranch").innerText = student.branch || "N/A";
+      document.getElementById("studentEmail").innerText = student.email || "N/A";
+    }
+
+    function openQRScanner() {
+      window.location.href = "qr_scanner.html";
+    }
+
+    function logout() {
+      localStorage.removeItem("student");
+      window.location.href = "index.html";
+    }
+    function viewAttendanceHistory() {
+  const studentId = student.id;
+  window.location.href = `student_attendance_history.html?id=${studentId}`;
+}
+function openGraphsPage() {
+  const studentId = student.id;
+  window.location.href = `student_graphs.html?id=${studentId}`;
+}
+
+  </script>
+</body>
+</html>

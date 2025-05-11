@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Teacher</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dashboard-page">
+  <div class="container">
+    <h2>Edit Teacher</h2>
+    <form id="editTeacherForm">
+      <input type="text" id="teacherName" placeholder="Name" required><br><br>
+      <input type="email" id="teacherEmail" placeholder="Email" required><br><br>
+      <button type="submit" class="btn">Save Changes</button>
+      <button type="button" onclick="goBack()" class="btn">Cancel</button>
+    </form>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const teacherId = urlParams.get('id');
+
+    async function loadTeacher() {
+      const res = await fetch(`http://localhost:3000/admin/get-teacher/${teacherId}`);
+      const teacher = await res.json();
+
+      document.getElementById('teacherName').value = teacher.name || '';
+      document.getElementById('teacherEmail').value = teacher.email || '';
+    }
+
+    document.getElementById('editTeacherForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('teacherName').value.trim();
+      const email = document.getElementById('teacherEmail').value.trim();
+
+      const res = await fetch(`http://localhost:3000/admin/update-teacher/${teacherId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email })
+      });
+
+      const data = await res.json();
+      alert(data.message);
+      window.location.href = 'admin_dashboard.html';
+    });
+
+    function goBack() {
+      window.location.href = 'admin_dashboard.html';
+    }
+
+    window.onload = loadTeacher;
+  </script>
+</body>
+</html>

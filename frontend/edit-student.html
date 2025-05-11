@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Student</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dashboard-page">
+  <div class="container">
+    <h2>Edit Student</h2>
+    <form id="editStudentForm">
+      <input type="text" id="studentName" placeholder="Name" required><br><br>
+      <input type="email" id="studentEmail" placeholder="Email" required><br><br>
+      <input type="text" id="studentRollNo" placeholder="Roll No" required><br><br>
+      <input type="text" id="studentBranch" placeholder="Branch" required><br><br>
+      <button type="submit" class="btn">Save Changes</button>
+      <button type="button" onclick="goBack()" class="btn">Cancel</button>
+    </form>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const studentId = urlParams.get('id');
+
+    async function loadStudent() {
+      const res = await fetch(`http://localhost:3000/admin/get-student/${studentId}`);
+      const student = await res.json();
+
+      document.getElementById('studentName').value = student.name || '';
+      document.getElementById('studentEmail').value = student.email || '';
+      document.getElementById('studentRollNo').value = student.roll_no || '';
+      document.getElementById('studentBranch').value = student.branch || '';
+    }
+
+    document.getElementById('editStudentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('studentName').value.trim();
+      const email = document.getElementById('studentEmail').value.trim();
+      const roll_no = document.getElementById('studentRollNo').value.trim();
+      const branch = document.getElementById('studentBranch').value.trim();
+
+      const res = await fetch(`http://localhost:3000/admin/update-student/${studentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, roll_no, branch })
+      });
+
+      const data = await res.json();
+      alert(data.message);
+      window.location.href = 'admin_dashboard.html';
+    });
+
+    function goBack() {
+      window.location.href = 'admin_dashboard.html';
+    }
+
+    window.onload = loadStudent;
+  </script>
+</body>
+</html>

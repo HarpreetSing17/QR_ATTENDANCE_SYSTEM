@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teacher Login</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Fixed Back to Home Button Styling */
+    button.back-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    button.back-btn:hover {
+      background-color: #e53935;
+    }
+  </style>
+</head>
+<body class="login-page">
+  <div class="container">
+    <h2>Teacher Login</h2>
+    <form id="loginForm">
+      <input type="email" placeholder="Email" name="email" required /><br />
+      <input type="password" placeholder="Password" name="password" required /><br />
+      <button type="submit">Login</button>
+    </form>
+    <p>Don't have an account? <a href="teacher_signup.html">Sign up here</a></p>
+  </div>
+
+  <!-- Back to Home Button -->
+  <button class="back-btn" id="backHome">Back to Home</button>
+
+  <script>
+    // Login form handler
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const email = e.target.email.value;
+      const password = e.target.password.value;
+
+      const response = await fetch("http://localhost:3000/teacher/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
+      alert(result.message);
+
+      if (response.ok) {
+        localStorage.setItem("teacher", JSON.stringify(result.teacher));
+        window.location.href = "teacher_dashboard.html";
+      }
+    });
+
+    // Back to Home button click
+    document.getElementById("backHome").addEventListener("click", function () {
+      window.location.href = "teacher_home.html";
+    });
+  </script>
+</body>
+</html>
