@@ -1,19 +1,19 @@
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
-  host: 'localhost',                // use 'localhost' instead of '127.0.0.1' for compatibility
-  user: 'root',                     // or your MySQL username
-  password: '',                     // or your MySQL root password
-  database: 'qr_attendance',        // make sure this DB exists
-  port: 3308,                       // <-- Add the port here to match your XAMPP MySQL configuration
+  host: 'mysql-qrattendance.alwaysdata.net',   // ✅ Replace with your host from AlwaysData
+  user: '412911',                        // ✅ Replace with your MySQL user from Permissions
+  password: 'happy1727',                    // ✅ Replace with the password you set
+  database: 'qrattendance_qr_attendance',      // ✅ Replace with your full database name
+  port: 3306,                                   // AlwaysData uses default port 3306
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  timezone: '+05:30'                // ✅ Set to Indian Standard Time (IST)
+  timezone: '+05:30'                            // Indian Standard Time
 });
 
 pool.getConnection()
-  .then(() => console.log(' ✅ Connected to MySQL'))
+  .then(() => console.log(' ✅ Connected to AlwaysData MySQL'))
   .catch(err => console.error('❌ MySQL Connection Error:', err));
 
 module.exports = pool;
