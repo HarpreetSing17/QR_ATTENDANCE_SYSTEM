@@ -90,7 +90,7 @@
 
     async function loadLectures() {
       try {
-        const response = await fetch(`http://localhost:3000/admin/teacher-lectures/${teacherId}`);
+        const response = await fetch(`https://qr-attendance-backend-1izl.onrender.com/admin/teacher-lectures/${teacherId}`);
         
         if (!response.ok) {
           throw new Error(`Server returned ${response.status} status`);

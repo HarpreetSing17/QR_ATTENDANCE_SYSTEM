@@ -99,7 +99,7 @@
     }
 
     function markAttendance(lectureId) {
-      fetch("http://localhost:3000/student/mark-attendance", {
+      fetch("https://qr-attendance-backend-1izl.onrender.com/student/mark-attendance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

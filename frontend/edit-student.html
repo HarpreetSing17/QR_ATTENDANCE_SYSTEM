@@ -23,7 +23,7 @@
     const studentId = urlParams.get('id');
 
     async function loadStudent() {
-      const res = await fetch(`http://localhost:3000/admin/get-student/${studentId}`);
+      const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com/admin/get-student/${studentId}`);
       const student = await res.json();
 
       document.getElementById('studentName').value = student.name || '';
@@ -39,7 +39,7 @@
       const roll_no = document.getElementById('studentRollNo').value.trim();
       const branch = document.getElementById('studentBranch').value.trim();
 
-      const res = await fetch(`http://localhost:3000/admin/update-student/${studentId}`, {
+      const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com/admin/update-student/${studentId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, roll_no, branch })

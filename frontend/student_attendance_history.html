@@ -133,7 +133,7 @@
 
     async function loadAttendance() {
       try {
-        const res = await fetch(`http://localhost:3000/admin/student-attendance/${studentId}`);
+        const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com/admin/student-attendance/${studentId}`);
         const data = await res.json();
         console.log("API se mila data:", data); // Debugging ke liye
 

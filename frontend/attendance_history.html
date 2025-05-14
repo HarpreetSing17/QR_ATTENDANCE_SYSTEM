@@ -335,7 +335,7 @@
 
     async function loadHistory() {
       // Simulated data - in a real app, you would fetch from your API
-      const res = await fetch(`http://localhost:3000/teacher/history/${teacher.id}`);
+      const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com/teacher/history/${teacher.id}`);
       const data = await res.json();
 
       // Sort by most recent date
@@ -426,7 +426,7 @@
     }
 
     async function showDetails(lectureId, semester) {
-      const res = await fetch(`http://localhost:3000/teacher/lecture-attendance/${lectureId}`);
+      const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com/teacher/lecture-attendance/${lectureId}`);
       const data = await res.json();
       detailsTable.innerHTML = "";
       data.attendance.forEach(std => {

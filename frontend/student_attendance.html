@@ -57,7 +57,7 @@
     const studentId = localStorage.getItem("studentId");
 
     async function fetchAttendance() {
-      const res = await fetch(`http://localhost:3000/student/attendance/${studentId}`);
+      const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com/student/attendance/${studentId}`);
       const data = await res.json();
       const tbody = document.getElementById("attendance-body");
 

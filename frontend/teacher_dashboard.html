@@ -103,7 +103,7 @@
       }
 
       try {
-        const res = await fetch("http://localhost:3000/teacher/create-lecture", {
+        const res = await fetch("https://qr-attendance-backend-1izl.onrender.com/teacher/create-lecture", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -136,7 +136,8 @@
 
     async function loadAttendance(lectureId) {
       try {
-        const res = await fetch(`http://localhost:3000/teacher/lecture-attendance/${lectureId}`);
+        const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com
+/teacher/lecture-attendance/${lectureId}`);
         const data = await res.json();
 
         const list = document.getElementById("studentsScannedList");
@@ -161,7 +162,8 @@
     window.onload = async () => {
       if (currentLectureId) {
         try {
-          const res = await fetch(`http://localhost:3000/teacher/lecture/${currentLectureId}`);
+          const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com
+/teacher/lecture/${currentLectureId}`);
           const data = await res.json();
 
           if (res.ok && new Date(data.expiry_time) > new Date()) {

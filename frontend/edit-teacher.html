@@ -21,7 +21,7 @@
     const teacherId = urlParams.get('id');
 
     async function loadTeacher() {
-      const res = await fetch(`http://localhost:3000/admin/get-teacher/${teacherId}`);
+      const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com/admin/get-teacher/${teacherId}`);
       const teacher = await res.json();
 
       document.getElementById('teacherName').value = teacher.name || '';
@@ -33,7 +33,7 @@
       const name = document.getElementById('teacherName').value.trim();
       const email = document.getElementById('teacherEmail').value.trim();
 
-      const res = await fetch(`http://localhost:3000/admin/update-teacher/${teacherId}`, {
+      const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com/admin/update-teacher/${teacherId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email })
