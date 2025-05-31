@@ -1,39 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Scan QR</title>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <audio id="scan-success-sound" src="success-sound.mp3" preload="auto"></audio>
 
   <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
       font-family: 'Arial', sans-serif;
       background: linear-gradient(to right, #2c3e50, #3498db);
       color: white;
       margin: 0;
-      padding: 0;
-      height: 100vh;
+      padding: 20px;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       flex-direction: column;
+      touch-action: manipulation;
     }
-    
+
     h2 {
       text-align: center;
-      font-size: 2rem;
-      margin-bottom: 20px;
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      margin-bottom: 15px;
       text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+      padding: 0 10px;
     }
 
     #reader {
-      width: 100%;
-      max-width: 400px;
-      margin: 20px auto;
-      border: 5px solid #fff;
-      border-radius: 10px;
+      width: min(90vw, 400px);
+      aspect-ratio: 1;
+      margin: 15px auto;
+      border: 3px solid #fff;
+      border-radius: 12px;
       background: rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+      position: relative;
+    }
+
+    #reader video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      border-radius: 12px;
     }
 
     .popup {
@@ -42,42 +59,29 @@
       padding: 12px;
       border-radius: 8px;
       text-align: center;
-      margin-top: 20px;
+      margin: 15px 0;
       display: none;
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 3vw, 1rem);
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      width: min(90vw, 400px);
     }
 
     #backButton {
       display: block;
-      margin: 20px auto;
+      margin: 15px auto;
       padding: 12px 24px;
       background-color: #007bff;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 3vw, 1rem);
       transition: background-color 0.3s ease;
+      width: min(90vw, 200px);
     }
 
     #backButton:hover {
       background-color: #0056b3;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
-      border-radius: 50%;
-      animation: spin 2s linear infinite;
-      margin: 0 auto;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -88,6 +92,21 @@
   <button id="backButton" onclick="goBackToDashboard()">Back to Dashboard</button>
 
   <script>
+    // Prevent zooming on mobile
+    document.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    });
+    
+    // Disable double-tap zoom
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(event) {
+      const now = (new Date()).getTime();
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, false);
+
     const student = JSON.parse(localStorage.getItem("student"));
 
     function showPopup(message, color = "#4caf50") {
@@ -113,6 +132,7 @@
       .then(res => res.json())
       .then(data => {
         if (data.success) {
+          document.getElementById("scan-success-sound").play();
           showPopup("✅ " + data.message);
         } else {
           showPopup("⚠️ " + data.message, "#f44336");
@@ -142,7 +162,10 @@
       { facingMode: "environment" },
       { fps: 10, qrbox: 250 },
       onScanSuccess
-    );
+    ).catch(err => {
+      console.error("Scanner error:", err);
+      showPopup("❌ Failed to start camera", "#f44336");
+    });
 
     function goBackToDashboard() {
       window.location.href = "student_dashboard.html";
