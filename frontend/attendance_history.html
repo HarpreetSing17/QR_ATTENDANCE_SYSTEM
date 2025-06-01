@@ -184,13 +184,15 @@
       color: white;
     }
   </style>
+  <!-- Add SheetJS library for Excel export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="dashboard-page">
   <div class="container">
     <h2>📖 Attendance History</h2>
 
     <button onclick="window.location.href='teacher_dashboard.html'" class="btn">🔙 Back to Dashboard</button>
-    <button onclick="exportCSV()" class="btn">📤 Export to CSV</button>
+    <button onclick="exportExcel()" class="btn">📤 Export to Excel</button>
 
     <div class="tab-container">
       <div class="tab-buttons">
@@ -457,31 +459,38 @@
       document.getElementById("detailsSection").style.display = "block";
     }
 
-    function exportCSV() {
-      const headers = ["Subject", "Date", "Time", "Semester", "Present Count", "Attendance %"];
-      const rows = [headers.join(",")];
+    function exportExcel() {
+      // Create a new workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Prepare the data for the worksheet
+      const headers = ["Subject", "Date", "Time", "Semester", "Present Count", "Total Students", "Attendance %"];
+      const data = [headers];
       
       filteredHistory.forEach(lecture => {
         const lectureDate = new Date(lecture.lecture_date);
         const totalStudents = lecture.total_students || 30;
         const attendancePercent = Math.round((lecture.attendance.length / totalStudents) * 100);
         
-        rows.push([
+        data.push([
           lecture.subject,
           lectureDate.toLocaleDateString("en-IN"),
           lecture.lecture_time,
           lecture.semester || 'N/A',
-          `${lecture.attendance.length}/${totalStudents}`,
-          `${attendancePercent}%`
-        ].join(","));
+          lecture.attendance.length,
+          totalStudents,
+          attendancePercent
+        ]);
       });
       
-      const csvContent = rows.join("\n");
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'attendance_history.csv';
-      a.click();
+      // Create a worksheet
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      
+      // Add the worksheet to the workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Attendance History");
+      
+      // Generate the Excel file and download it
+      XLSX.writeFile(wb, 'attendance_history.xlsx');
     }
 
     function updateCalendarMonth() {
