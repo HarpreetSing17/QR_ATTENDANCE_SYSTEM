@@ -75,6 +75,9 @@
       background-color: #f8f9fa;
       color: #6c757d;
     }
+    .holiday {
+      background-color: #007bff;
+    }
     select, input {
       padding: 5px;
       font-size: 14px;
@@ -306,6 +309,10 @@
           <div style="display: inline-block; width: 20px; height: 20px; background-color: #dc3545; margin-right: 10px;"></div>
           <span>No lecture conducted</span>
         </div>
+        <div>
+          <div style="display: inline-block; width: 20px; height: 20px; background-color: #007bff; margin-right: 10px;"></div>
+          <span>Holiday/Weekend</span>
+        </div>
       </div>
     </div>
   </div>
@@ -322,6 +329,12 @@
     const searchSubject = document.getElementById("searchSubject");
     const searchDate = document.getElementById("searchDate");
     const searchSemester = document.getElementById("searchSemester");
+
+    // Define holiday dates (month is 0-indexed, so May is 4, June is 5)
+    const holidays = [
+      { month: 4, days: [3, 4, 10, 11, 17, 18, 24, 25, 31] }, // May 2025
+      { month: 5, days: [1, 3, 7, 8, 11, 14, 15, 16, 21, 22, 23, 28, 29] } // June 2025
+    ];
 
     let allHistory = [];
     let filteredHistory = [];
@@ -500,8 +513,26 @@
       // Add days of month
       for (let day = 1; day <= daysInMonth; day++) {
         const dayElement = document.createElement("div");
-        dayElement.className = lectureDates.has(day) ? "day-box present" : "day-box absent";
+        dayElement.className = "day-box ";
         dayElement.innerText = day;
+        
+        // Check if it's a holiday
+        const isHoliday = holidays.some(h => 
+          h.month === selectedMonth && h.days.includes(day)
+        );
+        
+        // Check if it's a weekend (Saturday or Sunday)
+        const dayOfWeek = new Date(selectedYear, selectedMonth, day).getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        
+        if (isHoliday || isWeekend) {
+          dayElement.classList.add("holiday");
+        } else if (lectureDates.has(day)) {
+          dayElement.classList.add("present");
+        } else {
+          dayElement.classList.add("absent");
+        }
+        
         calendarDays.appendChild(dayElement);
       }
     }
@@ -524,19 +555,11 @@
         if (!subjectMap[lecture.subject]) {
           subjectMap[lecture.subject] = {
             count: 1,
-            totalPercent: percent,
-            minPercent: percent,
-            maxPercent: percent
+            totalPercent: percent
           };
         } else {
           subjectMap[lecture.subject].count++;
           subjectMap[lecture.subject].totalPercent += percent;
-          if (percent < subjectMap[lecture.subject].minPercent) {
-            subjectMap[lecture.subject].minPercent = percent;
-          }
-          if (percent > subjectMap[lecture.subject].maxPercent) {
-            subjectMap[lecture.subject].maxPercent = percent;
-          }
         }
       });
 
@@ -567,7 +590,7 @@
       document.getElementById("bestSubject").textContent = bestSubject ? `${bestSubject} (${bestAvg}%)` : "-";
       document.getElementById("lowestSubject").textContent = worstSubject ? `${worstSubject} (${worstAvg}%)` : "-";
 
-      // Render subject stats
+      // Render subject stats (simplified without range)
       subjectStats.innerHTML = "";
       for (const subject in subjectMap) {
         const avg = Math.round(subjectMap[subject].totalPercent / subjectMap[subject].count);
@@ -576,8 +599,7 @@
         card.innerHTML = `
           <h4>${subject}</h4>
           <div>Lectures: ${subjectMap[subject].count}</div>
-          <div>Average: ${avg}%</div>
-          <div>Range: ${subjectMap[subject].minPercent}% - ${subjectMap[subject].maxPercent}%</div>
+          <div>Average Attendance: ${avg}%</div>
           <div class="progress-container">
             <div class="progress-bar" style="width: ${avg}%; background-color: ${getColorForPercent(avg)}">
               ${avg}%
