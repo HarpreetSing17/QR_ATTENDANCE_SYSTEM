@@ -198,36 +198,47 @@ app.post('/student/login', async (req, res) => {
 
 // ✅ Mark Attendance
 app.post('/student/mark-attendance', async (req, res) => {
-  const { studentId, lectureId } = req.body;
+  const { studentId, lectureId, latitude, longitude } = req.body;
   const scanTime = new Date();
-  const studentIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  const studentIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.connection.remoteAddress;
 
   console.log("🟢 Incoming Attendance Request");
   console.log("Student ID:", studentId);
   console.log("Lecture ID:", lectureId);
   console.log("Scan Time:", scanTime);
-  console.log("Student IP:", studentIP);
+  console.log("IP Address:", studentIP);
+  console.log("Location:", latitude, longitude);
 
   try {
+    // Check if lecture exists
     const [lectureRows] = await pool.query('SELECT * FROM lectures WHERE id = ?', [lectureId]);
     if (lectureRows.length === 0) {
       console.log("❌ Lecture not found");
       return res.status(404).json({ success: false, message: 'Lecture not found' });
     }
 
+    // Check if QR is expired
     const expiry = new Date(lectureRows[0].expiry_time);
     if (scanTime > expiry) {
       console.log("⛔ QR code expired at:", expiry);
       return res.status(403).json({ success: false, message: 'QR code has expired' });
     }
 
-    const [existing] = await pool.query('SELECT * FROM attendance WHERE lecture_id = ? AND student_id = ?', [lectureId, studentId]);
+    // Check if already marked
+    const [existing] = await pool.query(
+      'SELECT * FROM attendance WHERE lecture_id = ? AND student_id = ?',
+      [lectureId, studentId]
+    );
     if (existing.length > 0) {
       console.log("⚠️ Attendance already marked");
       return res.json({ success: false, message: 'Attendance already marked' });
     }
 
-    const [studentRows] = await pool.query('SELECT name, roll_no, email, branch FROM students WHERE id = ?', [studentId]);
+    // Get student info
+    const [studentRows] = await pool.query(
+      'SELECT name, roll_no, email, branch FROM students WHERE id = ?',
+      [studentId]
+    );
     if (studentRows.length === 0) {
       console.log("❌ Student not found");
       return res.status(404).json({ success: false, message: 'Student not found' });
@@ -235,16 +246,30 @@ app.post('/student/mark-attendance', async (req, res) => {
 
     const { name, roll_no, email, branch } = studentRows[0];
 
+    // Insert attendance
     await pool.query(
-      'INSERT INTO attendance (lecture_id, student_id, scan_time, ip_address, student_name, roll_no, email, branch) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [lectureId, studentId, scanTime, studentIP, name, roll_no, email, branch]
+      `INSERT INTO attendance (
+        lecture_id, student_id, scan_time, ip_address,
+        student_name, roll_no, email, branch, latitude, longitude
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [lectureId, studentId, scanTime, studentIP, name, roll_no, email, branch, latitude, longitude]
     );
 
-    console.log("✅ Attendance marked for:", name, roll_no, email, branch);
+    console.log(`✅ Attendance marked for ${name} (${roll_no}) at [${latitude}, ${longitude}]`);
+
     res.json({
       success: true,
       message: 'Attendance marked successfully!',
-      student: { name, roll_no, email, branch, scanTime, ip: studentIP }
+      student: {
+        name,
+        roll_no,
+        email,
+        branch,
+        scanTime,
+        ip: studentIP,
+        latitude,
+        longitude
+      }
     });
   } catch (err) {
     console.error("❌ Attendance Error:", err);
@@ -252,7 +277,7 @@ app.post('/student/mark-attendance', async (req, res) => {
   }
 });
 
-
+   
 
 /* =============================
    ADMIN ROUTES

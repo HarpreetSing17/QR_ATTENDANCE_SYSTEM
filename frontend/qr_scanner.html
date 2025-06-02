@@ -92,12 +92,10 @@
   <button id="backButton" onclick="goBackToDashboard()">Back to Dashboard</button>
 
   <script>
-    // Prevent zooming on mobile
     document.addEventListener('gesturestart', function(e) {
       e.preventDefault();
     });
-    
-    // Disable double-tap zoom
+
     let lastTouchEnd = 0;
     document.addEventListener('touchend', function(event) {
       const now = (new Date()).getTime();
@@ -118,30 +116,47 @@
     }
 
     function markAttendance(lectureId) {
-      fetch("https://qr-attendance-backend-1izl.onrender.com/student/mark-attendance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          studentId: student.id,
-          name: student.name,
-          rollno: student.rollno,
-          branch: student.branch,
-          lectureId: lectureId
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          document.getElementById("scan-success-sound").play();
-          showPopup("✅ " + data.message);
-        } else {
-          showPopup("⚠️ " + data.message, "#f44336");
-        }
-      })
-      .catch(err => {
-        console.error("Error marking attendance:", err);
-        showPopup("❌ Server Error", "#f44336");
-      });
+      if (!navigator.geolocation) {
+        return showPopup("❌ Location not supported", "#f44336");
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+
+          fetch("https://qr-attendance-backend-1izl.onrender.com/student/mark-attendance", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              studentId: student.id,
+              name: student.name,
+              rollno: student.rollno,
+              branch: student.branch,
+              lectureId: lectureId,
+              latitude: latitude,
+              longitude: longitude
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              document.getElementById("scan-success-sound").play();
+              showPopup("✅ " + data.message);
+            } else {
+              showPopup("⚠️ " + data.message, "#f44336");
+            }
+          })
+          .catch(err => {
+            console.error("Error marking attendance:", err);
+            showPopup("❌ Server Error", "#f44336");
+          });
+        },
+        (error) => {
+          console.error("Location error:", error);
+          showPopup("❌ Location permission denied", "#f44336");
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
     }
 
     function onScanSuccess(decodedText) {
