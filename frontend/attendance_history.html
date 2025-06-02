@@ -183,6 +183,13 @@
       line-height: 20px;
       color: white;
     }
+    .location-link {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .location-link:hover {
+      text-decoration: underline;
+    }
   </style>
   <!-- Add SheetJS library for Excel export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -244,7 +251,15 @@
           <h3>🔍 Lecture Details</h3>
           <table id="detailsTable">
             <thead>
-              <tr><th>Name</th><th>Roll No</th><th>Branch</th><th>Semester</th><th>Scan Time</th><th>IP</th></tr>
+              <tr>
+                <th>Name</th>
+                <th>Roll No</th>
+                <th>Branch</th>
+                <th>Semester</th>
+                <th>Scan Time</th>
+                <th>IP</th>
+                <th>Location</th>
+              </tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -446,6 +461,16 @@
       detailsTable.innerHTML = "";
       data.attendance.forEach(std => {
         const row = document.createElement("tr");
+        
+        // Get location coordinates if available
+        let location = "N/A";
+        if (std.latitude && std.longitude) {
+          // Format coordinates and create a link to Google Maps
+          const lat = std.latitude.toFixed(4);
+          const lng = std.longitude.toFixed(4);
+          location = `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="location-link">${lat}, ${lng}</a>`;
+        }
+        
         row.innerHTML = `
           <td>${std.student_name || 'N/A'}</td>
           <td>${std.roll_no || 'N/A'}</td>
@@ -453,6 +478,7 @@
           <td>${semester || 'N/A'}</td>
           <td>${std.scan_time ? new Date(std.scan_time).toLocaleTimeString("en-IN") : 'N/A'}</td>
           <td>${std.ip_address || 'N/A'}</td>
+          <td>${location}</td>
         `;
         detailsTable.appendChild(row);
       });
