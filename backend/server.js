@@ -141,13 +141,30 @@ app.get('/teacher/lecture-attendance/:lecture_id', async (req, res) => {
   const { lecture_id } = req.params;
   try {
     const [attendance] = await pool.query(
-      'SELECT student_name, roll_no, branch, ip_address, scan_time FROM attendance WHERE lecture_id = ?',
+      `SELECT 
+        student_name, 
+        roll_no, 
+        branch, 
+        ip_address, 
+        scan_time,
+        latitude,    // Added this
+        longitude    // Added this
+       FROM attendance 
+       WHERE lecture_id = ?`,
       [lecture_id]
     );
-    res.status(200).json({ attendance });
+    
+    res.status(200).json({ 
+      success: true,
+      attendance 
+    });
   } catch (err) {
     console.error('Fetch Lecture Attendance Error:', err);
-    res.status(500).json({ message: 'Failed to fetch lecture attendance' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch lecture attendance',
+      error: err.message 
+    });
   }
 });
 
