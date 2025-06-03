@@ -236,9 +236,7 @@
       height: 500px;
     }
   </style>
-  <!-- Add SheetJS library for Excel export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <!-- Add Google Maps API -->
   <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
 </head>
 <body class="dashboard-page">
@@ -382,7 +380,6 @@
     </div>
   </div>
 
-  <!-- Map Modal -->
   <div id="mapModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="document.getElementById('mapModal').style.display='none'">&times;</span>
@@ -408,10 +405,9 @@
     const mapContainer = document.getElementById("map-container");
     const locationInfo = document.getElementById("location-info");
 
-    // Define holiday dates (month is 0-indexed, so May is 4, June is 5)
     const holidays = [
-      { month: 4, days: [3, 4, 10, 11, 17, 18, 24, 25, 31] }, // May 2025
-      { month: 5, days: [1, 3, 7, 8, 11, 14, 15, 16, 21, 22, 23, 28, 29] } // June 2025
+      { month: 4, days: [3, 4, 10, 11, 17, 18, 24, 25, 31] },
+      { month: 5, days: [1, 3, 7, 8, 11, 14, 15, 16, 21, 22, 23, 28, 29] }
     ];
 
     let allHistory = [];
@@ -431,7 +427,6 @@
         const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com/teacher/history/${teacher.id}`);
         const data = await res.json();
 
-        // Sort by most recent date
         allHistory = data.history.sort((a, b) => {
           const dateA = new Date(`${a.lecture_date} ${a.lecture_time}`);
           const dateB = new Date(`${b.lecture_date} ${b.lecture_time}`);
@@ -476,7 +471,7 @@
         const row = document.createElement("tr");
         const lectureDate = new Date(lecture.lecture_date);
         const lectureTime = lecture.lecture_time;
-        const totalStudents = lecture.total_students || 30; // Default to 30 if not available
+        const totalStudents = lecture.total_students || 30;
         const attendancePercent = Math.round((lecture.attendance.length / totalStudents) * 100);
         
         row.innerHTML = `
@@ -525,64 +520,75 @@
     async function showDetails(lectureId, semester) {
       try {
         const res = await fetch(`https://qr-attendance-backend-1izl.onrender.com/teacher/lecture-attendance/${lectureId}`);
+        if (!res.ok) throw new Error('Failed to fetch attendance data');
+        
         const data = await res.json();
         detailsTable.innerHTML = "";
         
-        // Initialize Google Maps services if not already done
-        if (!geocoder) {
-          geocoder = new google.maps.Geocoder();
+        console.log("Attendance API Response:", data);
+
+        if (!data.attendance || data.attendance.length === 0) {
+          detailsTable.innerHTML = `<tr><td colspan="7">No attendance records found</td></tr>`;
+          document.getElementById("detailsSection").style.display = "block";
+          return;
         }
-        
-        // Process each attendance record
-        for (const std of data.attendance) {
+
+        data.attendance.forEach(std => {
           const row = document.createElement("tr");
           
-          // Get location information
-          let locationContent = "N/A";
-          if (std.latitude && std.longitude) {
-            const lat = parseFloat(std.latitude).toFixed(6);
-            const lng = parseFloat(std.longitude).toFixed(6);
+          const lat = std.latitude !== undefined ? std.latitude : std.lat;
+          const lng = std.longitude !== undefined ? std.longitude : std.lng;
+          
+          let locationContent = "Location not recorded";
+          
+          if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
+            const formattedLat = parseFloat(lat).toFixed(6);
+            const formattedLng = parseFloat(lng).toFixed(6);
             
-            // Create map thumbnail URL
-            const mapThumbUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=15&size=200x120&markers=color:red%7C${lat},${lng}&key=YOUR_API_KEY`;
+            const mapThumbUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${formattedLat},${formattedLng}&zoom=15&size=200x120&markers=color:red%7C${formattedLat},${formattedLng}&key=YOUR_API_KEY`;
             
             locationContent = `
               <div class="location-cell">
-                <div>Lat: ${lat}</div>
-                <div>Lng: ${lng}</div>
+                <div><strong>Latitude:</strong> ${formattedLat}</div>
+                <div><strong>Longitude:</strong> ${formattedLng}</div>
                 <div class="map-thumbnail" 
                      style="background-image: url('${mapThumbUrl}')"
-                     onclick="showFullMap(${lat}, ${lng})"
+                     onclick="showFullMap(${formattedLat}, ${formattedLng})"
                      title="Click to view larger map">
                 </div>
-                <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="location-link">Open in Google Maps</a>
+                <a href="https://www.google.com/maps?q=${formattedLat},${formattedLng}" 
+                   target="_blank" 
+                   class="location-link">
+                   View on Google Maps
+                </a>
               </div>
             `;
+          } else {
+            console.log("Invalid coordinates for student:", std.student_name, "Lat:", lat, "Lng:", lng);
           }
-          
+
           row.innerHTML = `
             <td>${std.student_name || 'N/A'}</td>
             <td>${std.roll_no || 'N/A'}</td>
             <td>${std.branch || 'N/A'}</td>
             <td>${semester || 'N/A'}</td>
-            <td>${std.scan_time ? new Date(std.scan_time).toLocaleTimeString("en-IN") : 'N/A'}</td>
+            <td>${std.scan_time ? new Date(std.scan_time).toLocaleString("en-IN") : 'N/A'}</td>
             <td>${std.ip_address || 'N/A'}</td>
             <td>${locationContent}</td>
           `;
           detailsTable.appendChild(row);
-        }
+        });
         
         document.getElementById("detailsSection").style.display = "block";
       } catch (err) {
         console.error("Error loading attendance details:", err);
-        alert("Failed to load attendance details. Please try again.");
+        alert("Error loading attendance details: " + err.message);
       }
     }
 
     function showFullMap(lat, lng) {
       mapModal.style.display = "block";
       
-      // Initialize map if not already done
       if (!map) {
         map = new google.maps.Map(mapContainer, {
           center: { lat: lat, lng: lng },
@@ -592,14 +598,16 @@
         map.setCenter({ lat: lat, lng: lng });
       }
       
-      // Add marker
       new google.maps.Marker({
         position: { lat: lat, lng: lng },
         map: map,
         title: "Attendance Location"
       });
       
-      // Try to get address information
+      if (!geocoder) {
+        geocoder = new google.maps.Geocoder();
+      }
+      
       geocoder.geocode({ location: { lat: lat, lng: lng } }, (results, status) => {
         if (status === "OK" && results[0]) {
           locationInfo.innerHTML = `
@@ -613,10 +621,7 @@
     }
 
     function exportExcel() {
-      // Create a new workbook
       const wb = XLSX.utils.book_new();
-      
-      // Prepare the data for the worksheet
       const headers = ["Subject", "Date", "Time", "Semester", "Present Count", "Total Students", "Attendance %"];
       const data = [headers];
       
@@ -636,13 +641,8 @@
         ]);
       });
       
-      // Create a worksheet
       const ws = XLSX.utils.aoa_to_sheet(data);
-      
-      // Add the worksheet to the workbook
       XLSX.utils.book_append_sheet(wb, ws, "Attendance History");
-      
-      // Generate the Excel file and download it
       XLSX.writeFile(wb, 'attendance_history.xlsx');
     }
 
@@ -652,7 +652,6 @@
       const firstDay = new Date(selectedYear, selectedMonth, 1).getDay();
       const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
-      // Get all lecture dates for the selected month
       const lectureDates = new Set();
       allHistory.forEach(lecture => {
         const date = new Date(lecture.lecture_date);
@@ -661,10 +660,8 @@
         }
       });
 
-      // Clear calendar
       calendarDays.innerHTML = "";
 
-      // Add empty cells for days before the first day of month
       for (let i = 0; i < firstDay; i++) {
         const emptyDay = document.createElement("div");
         emptyDay.className = "day-box no-lecture";
@@ -672,18 +669,15 @@
         calendarDays.appendChild(emptyDay);
       }
 
-      // Add days of month
       for (let day = 1; day <= daysInMonth; day++) {
         const dayElement = document.createElement("div");
         dayElement.className = "day-box ";
         dayElement.innerText = day;
         
-        // Check if it's a holiday
         const isHoliday = holidays.some(h => 
           h.month === selectedMonth && h.days.includes(day)
         );
         
-        // Check if it's a weekend (Saturday or Sunday)
         const dayOfWeek = new Date(selectedYear, selectedMonth, day).getDay();
         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
         
@@ -702,10 +696,6 @@
     function calculateStats() {
       if (allHistory.length === 0) return;
 
-      // Calculate total lectures
-      document.getElementById("totalLectures").textContent = allHistory.length;
-
-      // Calculate subject-wise stats
       const subjectMap = {};
       let totalAttendancePercent = 0;
 
@@ -725,11 +715,8 @@
         }
       });
 
-      // Calculate average attendance
       const avgAttendance = Math.round(totalAttendancePercent / allHistory.length);
       document.getElementById("avgAttendance").textContent = `${avgAttendance}%`;
-
-      // Find best and worst subjects
       let bestSubject = "";
       let bestAvg = 0;
       let worstSubject = "";
@@ -751,8 +738,6 @@
 
       document.getElementById("bestSubject").textContent = bestSubject ? `${bestSubject} (${bestAvg}%)` : "-";
       document.getElementById("lowestSubject").textContent = worstSubject ? `${worstSubject} (${worstAvg}%)` : "-";
-
-      // Render subject stats (simplified without range)
       subjectStats.innerHTML = "";
       for (const subject in subjectMap) {
         const avg = Math.round(subjectMap[subject].totalPercent / subjectMap[subject].count);
@@ -773,24 +758,20 @@
     }
 
     function openTab(tabName) {
-      // Hide all tab contents
       const tabContents = document.getElementsByClassName("tab-content");
       for (let i = 0; i < tabContents.length; i++) {
         tabContents[i].classList.remove("active");
       }
 
-      // Remove active class from all tab buttons
       const tabButtons = document.getElementsByClassName("tab-btn");
       for (let i = 0; i < tabButtons.length; i++) {
         tabButtons[i].classList.remove("active");
       }
 
-      // Show the current tab and add active class to the button
       document.getElementById(tabName).classList.add("active");
       event.currentTarget.classList.add("active");
     }
 
-    // Close modal when clicking outside of it
     window.onclick = function(event) {
       if (event.target == mapModal) {
         mapModal.style.display = "none";
