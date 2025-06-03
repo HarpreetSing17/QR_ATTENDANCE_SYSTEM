@@ -147,8 +147,8 @@ app.get('/teacher/lecture-attendance/:lecture_id', async (req, res) => {
         branch, 
         ip_address, 
         scan_time,
-        latitude,    // Added this
-        longitude    // Added this
+        latitude,    
+        longitude   
        FROM attendance 
        WHERE lecture_id = ?`,
       [lecture_id]
