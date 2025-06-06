@@ -19,6 +19,8 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      position: relative; /* Added for positioning context */
+      padding-bottom: 80px; /* Added to prevent content from being hidden behind fixed button */
     }
 
     .container {
@@ -27,7 +29,7 @@
       border-radius: 20px;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
       width: 100%;
-      max-width: 400px; /* ✅ Fixed width for consistent layout */
+      max-width: 400px;
       text-align: center;
       margin: auto;
       transition: all 0.3s ease;
@@ -81,21 +83,29 @@
     }
 
     #homeButton {
-      margin-top: 20px;
-      padding: 12px;
-      width: 100%;
-      max-width: 400px;
+      position: fixed; /* Changed from margin to fixed positioning */
+      right: 20px;
+      bottom: 20px;
+      padding: 12px 24px;
       background-color: #28a745;
       color: white;
       font-size: 16px;
       border: none;
       border-radius: 25px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
     }
 
     #homeButton:hover {
       background-color: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    #homeButton:active {
+      transform: translateY(1px);
     }
   </style>
 </head>
