@@ -3,9 +3,102 @@
 <head>
   <meta charset="UTF-8" />
   <title>Student Login</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 400px; /* ✅ Fixed width */
+      text-align: center;
+      margin: auto;
+      transition: all 0.3s ease;
+    }
+
+    .container h2 {
+      margin-bottom: 20px;
+      color: #1f1f1f;
+      font-size: 24px;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      background: #1da1f2;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      margin-top: 15px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button[type="submit"]:hover {
+      background: #0d8bd7;
+    }
+
+    p {
+      margin-top: 12px;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    #homeButton {
+      margin-top: 20px;
+      padding: 12px;
+      width: 100%;
+      max-width: 400px;
+      background-color: #28a745;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    #homeButton:hover {
+      background-color: #218838;
+    }
+  </style>
 </head>
-<body class="form-page">
+<body>
   <div class="container">
     <h2>🔐 Student Login</h2>
     <form id="loginForm">
@@ -21,34 +114,32 @@
 
   <script>
     const form = document.getElementById("loginForm");
-  
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-  
+
       const response = await fetch("https://qr-attendance-backend-1izl.onrender.com/student/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-  
+
       const result = await response.json();
       alert(result.message);
-  
+
       if (response.ok) {
-        // 🛠 Rename roll_no to rollno
         const student = {
           ...result.student,
-          rollno: result.student.roll_no
+          rollno: result.student.roll_no // ensure rollno key exists
         };
-  
+
         localStorage.setItem("studentId", student.id);
         localStorage.setItem("student", JSON.stringify(student));
         window.location.href = "student_dashboard.html";
       }
     });
   </script>
-  
 </body>
 </html>

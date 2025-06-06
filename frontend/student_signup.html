@@ -1,34 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Sign Up</title>
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 400px; /* ✅ Fixed width for consistent layout */
+      text-align: center;
+      margin: auto;
+      transition: all 0.3s ease;
+    }
+
+    .container h2 {
+      margin-bottom: 20px;
+      color: #1f1f1f;
+      font-size: 24px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      background: #1da1f2;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      margin-top: 15px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button[type="submit"]:hover {
+      background: #0d8bd7;
+    }
+
+    p {
+      margin-top: 12px;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    #homeButton {
+      margin-top: 20px;
+      padding: 12px;
+      width: 100%;
+      max-width: 400px;
+      background-color: #28a745;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    #homeButton:hover {
+      background-color: #218838;
+    }
+  </style>
 </head>
-<body class="form-page">
+<body>
   <div class="container">
     <h2>🎓 Student Sign Up</h2>
     <form id="signupForm">
-      <form id="signupForm">
-        <input type="text" placeholder="Name" id="name" name="name" required>
-        <input type="text" placeholder="Roll Number" id="rollno" name="rollno" required>
-        <input type="text" placeholder="Branch" id="branch" name="branch" required>
-        <input type="text" placeholder="Semester" id="semester" name="semester" required>
-        <input type="email" placeholder="Email" id="email" name="email" required>
-        <input type="password" placeholder="Password" id="password" name="password" required>
-        <button type="submit">Sign Up</button>
-      </form>
-      
+      <input type="text" placeholder="Name" id="name" name="name" required />
+      <input type="text" placeholder="Roll Number" id="rollno" name="rollno" required />
+      <input type="text" placeholder="Branch" id="branch" name="branch" required />
+      <input type="text" placeholder="Semester" id="semester" name="semester" required />
+      <input type="email" placeholder="Email" id="email" name="email" required />
+      <input type="password" placeholder="Password" id="password" name="password" required />
+      <button type="submit">Sign Up</button>
     </form>
     <p>Already registered? <a href="student_login.html">Login here</a></p>
   </div>
 
-  <!-- Go to Student Home Button -->
   <button id="homeButton" onclick="window.location.href='student_home.html'">Go to Student Home</button>
 
   <script>
     const form = document.getElementById("signupForm");
-  
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = document.getElementById("name").value;
@@ -37,13 +127,13 @@
       const semester = document.getElementById("semester").value;
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-  
+
       const response = await fetch("https://qr-attendance-backend-1izl.onrender.com/student/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, rollno, branch, semester, email, password })
       });
-  
+
       const result = await response.json();
       alert(result.message);
       if (response.ok) {
@@ -51,6 +141,5 @@
       }
     });
   </script>
-  
 </body>
 </html>
