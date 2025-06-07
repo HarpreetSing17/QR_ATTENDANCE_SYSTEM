@@ -2,8 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!-- Added this for proper mobile rendering -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Dashboard</title>
   <link rel="stylesheet" href="styles.css">
+  <!-- Just adding this mobile-specific CSS -->
+  <style>
+    @media (max-width: 600px) {
+      .container button {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 12px;
+        font-size: 16px;
+      }
+    }
+  </style>
 </head>
 <body class="dashboard-page">
   <div class="container">
@@ -13,9 +27,8 @@
     <p>Email: <span id="studentEmail"></span></p>
 
     <button onclick="openQRScanner()">📷 Scan QR to Mark Attendance</button>
-<button onclick="viewAttendanceHistory()">📖 View Attendance History</button>
-<button onclick="logout()">🚪 Logout</button>
-
+    <button onclick="viewAttendanceHistory()">📖 View Attendance History</button>
+    <button onclick="logout()">🚪 Logout</button>
   </div>
 
   <script>
@@ -40,14 +53,13 @@
       window.location.href = "index.html";
     }
     function viewAttendanceHistory() {
-  const studentId = student.id;
-  window.location.href = `student_attendance_history.html?id=${studentId}`;
-}
-function openGraphsPage() {
-  const studentId = student.id;
-  window.location.href = `student_graphs.html?id=${studentId}`;
-}
-
+      const studentId = student.id;
+      window.location.href = `student_attendance_history.html?id=${studentId}`;
+    }
+    function openGraphsPage() {
+      const studentId = student.id;
+      window.location.href = `student_graphs.html?id=${studentId}`;
+    }
   </script>
 </body>
 </html>

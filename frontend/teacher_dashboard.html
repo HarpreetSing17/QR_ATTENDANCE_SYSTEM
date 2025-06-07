@@ -2,8 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!-- Added viewport meta tag for mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Dashboard</title>
   <link rel="stylesheet" href="styles.css">
+  <!-- Mobile-specific CSS only -->
+  <style>
+    @media (max-width: 600px) {
+      .dashboard-options button {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 12px;
+        font-size: 16px;
+      }
+      
+      #lectureForm input,
+      #lectureForm select,
+      #lectureForm button {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 12px;
+        box-sizing: border-box;
+      }
+      
+      #qrCodeImage {
+        max-width: 100% !important;
+      }
+    }
+  </style>
 </head>
 <body class="dashboard-page">
   <div class="container">
