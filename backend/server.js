@@ -231,8 +231,11 @@ app.post('/student/mark-attendance', async (req, res) => {
   // ✅ Geofencing Check
   // -----------------------
   const allowedLocations = [
-    { lat: 32.810278, lng: 74.758528 },  // Classroom Point A
-    
+    { lat: 32.810278, lng: 74.758528 },  // my home 
+
+    {lat: 32.851083, lng:74.780056 },   //cse lab 
+
+    {lat: 32.8519243, lng: 74.7792152 } //lecture hall
   ];
   const radiusInMeters = 30;
 
