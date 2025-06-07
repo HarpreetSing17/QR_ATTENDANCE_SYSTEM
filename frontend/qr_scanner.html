@@ -92,6 +92,7 @@
   <button id="backButton" onclick="goBackToDashboard()">Back to Dashboard</button>
 
   <script>
+    // Disable double tap zoom on mobile
     document.addEventListener('gesturestart', function(e) {
       e.preventDefault();
     });
@@ -106,13 +107,20 @@
     }, false);
 
     const student = JSON.parse(localStorage.getItem("student"));
+    let scanCooldown = false;
 
     function showPopup(message, color = "#4caf50") {
       const popup = document.getElementById("popup");
       popup.innerText = message;
       popup.style.background = color;
       popup.style.display = "block";
-      setTimeout(() => popup.style.display = "none", 3000);
+      setTimeout(() => popup.style.display = "none", 3000); // Show 3 sec
+    }
+
+    function vibrate(ms = 200) {
+      if ("vibrate" in navigator) {
+        navigator.vibrate(ms);
+      }
     }
 
     function markAttendance(lectureId) {
@@ -139,6 +147,7 @@
           })
           .then(res => res.json())
           .then(data => {
+            vibrate(200);
             if (data.success) {
               document.getElementById("scan-success-sound").play();
               showPopup("✅ " + data.message);
@@ -160,16 +169,23 @@
     }
 
     function onScanSuccess(decodedText) {
+      if (scanCooldown) return;
+
+      scanCooldown = true;
+      setTimeout(() => scanCooldown = false, 4000); // 4 sec cooldown
+
       try {
         if (decodedText.startsWith("lecture_id:")) {
           const lectureId = decodedText.split(":")[1];
           markAttendance(lectureId);
         } else {
           showPopup("⚠️ Invalid QR Code", "#f44336");
+          vibrate(300);
         }
       } catch (e) {
         console.error("QR Scan Error:", e);
         showPopup("❌ Scan failed", "#f44336");
+        vibrate(300);
       }
     }
 
