@@ -213,7 +213,8 @@ app.post('/student/login', async (req, res) => {
   }
 });
 
-// ✅ Mark Attendance
+
+// ✅ Mark Attendance with Geofencing
 app.post('/student/mark-attendance', async (req, res) => {
   const { studentId, lectureId, latitude, longitude } = req.body;
   const scanTime = new Date();
@@ -225,6 +226,41 @@ app.post('/student/mark-attendance', async (req, res) => {
   console.log("Scan Time:", scanTime);
   console.log("IP Address:", studentIP);
   console.log("Location:", latitude, longitude);
+
+  // -----------------------
+  // ✅ Geofencing Check
+  // -----------------------
+  const allowedLocations = [
+    { lat: 32.810278, lng: 74.758528 },  // Classroom Point A
+    
+  ];
+  const radiusInMeters = 30;
+
+  function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000; // Earth radius in meters
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in meters
+  }
+
+  let isInsideAllowedArea = false;
+  for (const loc of allowedLocations) {
+    const dist = getDistance(latitude, longitude, loc.lat, loc.lng);
+    if (dist <= radiusInMeters) {
+      isInsideAllowedArea = true;
+      break;
+    }
+  }
+
+  if (!isInsideAllowedArea) {
+    console.log("🚫 Outside allowed location radius");
+    return res.status(403).json({ success: false, message: 'You are not inside the allowed classroom area' });
+  }
 
   try {
     // Check if lecture exists
@@ -247,7 +283,7 @@ app.post('/student/mark-attendance', async (req, res) => {
       [lectureId, studentId]
     );
     if (existing.length > 0) {
-      console.log("⚠️ Attendance already marked");
+      console.log("⚠ Attendance already marked");
       return res.json({ success: false, message: 'Attendance already marked' });
     }
 
@@ -272,7 +308,7 @@ app.post('/student/mark-attendance', async (req, res) => {
       [lectureId, studentId, scanTime, studentIP, name, roll_no, email, branch, latitude, longitude]
     );
 
-    console.log(`✅ Attendance marked for ${name} (${roll_no}) at [${latitude}, ${longitude}]`);
+    console.log('✅ Attendance marked for ${name} (${roll_no}) at [${latitude}, ${longitude}]');
 
     res.json({
       success: true,
@@ -288,7 +324,8 @@ app.post('/student/mark-attendance', async (req, res) => {
         longitude
       }
     });
-  } catch (err) {
+  }
+  catch (err) {
     console.error("❌ Attendance Error:", err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
